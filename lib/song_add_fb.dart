@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:my_karaoke/my_song_data_fb.dart';
-
 import 'my_song_data.dart';
 
 class SongAddFirebase extends StatefulWidget {
@@ -15,6 +14,7 @@ class SongAddFirebase extends StatefulWidget {
 
 class _SongAddFirebaseState extends State<SongAddFirebase> {
   final _fKey = GlobalKey<FormState>();
+  FocusNode? focusNode; 
   AutovalidateMode autovalidateMode = AutovalidateMode.disabled;
   TextEditingController? _songNameController;
   TextEditingController? _songGYNumberController;
@@ -23,45 +23,59 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
   TextEditingController? _songUtubeAddressController;
   TextEditingController? _songETCController;
   String songItem = "";
+
   void _submit() async {
     setState(() {
       autovalidateMode = AutovalidateMode.always;
     });
 
-    if (_fKey.currentState!.validate()) {
-      widget.reference
-          .push()
-          .set(MySongDataFirebase(
-                  widget.songNum.toString(),
-                  _songNameController!.text,
-                  _songGYNumberController!.text,
-                  _songTJNumberController!.text,
-                  songItem,
-                  _songUtubeAddressController!.text,
-                  _songETCController!.text,
-                  DateTime.now().toIso8601String())
-              .toJson())
-          .then((_) {
-        Navigator.of(context).pop();
-      });
+    if (_fKey.currentState!.validate())  {
+      var result = await showDialog<bool?>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Text("Are you sure you want to Karaoke data."),
+            actions: <Widget>[
+              TextButton(
+                child: Text("Cancel"),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+              ),
+              TextButton(
+                child: Text("Save"),
+                onPressed: () {
+                  widget.reference
+                      .push()
+                      .set(MySongDataFirebase(
+                              widget.songNum.toString(),
+                              _songNameController!.text,
+                              _songGYNumberController!.text,
+                              _songTJNumberController!.text,
+                              songItem,
+                              _songUtubeAddressController!.text,
+                              _songETCController!.text,
+                              DateTime.now().toIso8601String())
+                          .toJson())
+                      .then((_) {
+                    Navigator.of(context).pop(true);
+                  });
+                },
+              ),
+            ],
+          );
+        },
+      );
+      print("result : $result}");
     }
-
     _fKey.currentState!.save();
-
-    // print('email: $_email, password: $_password');
-
-    // try {
-    //   await context
-    //       .read<AuthProvider>()
-    //       .signIn(email: _email, password: _password);
-    // } catch (e) {
-    //   errorDialog(context, e);
-    // }
+    Navigator.of(context).pop();
   }
 
   @override
   void initState() {
     super.initState();
+    focusNode = FocusNode(); 
     _songNameController = TextEditingController();
     _songGYNumberController = TextEditingController();
     _songTJNumberController = TextEditingController();
@@ -72,6 +86,7 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
 
   @override
   void dispose() {
+    focusNode!.dispose(); 
     _songNameController!.dispose();
     _songGYNumberController!.dispose();
     _songTJNumberController!.dispose();
@@ -116,8 +131,6 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
                       }
                       return null;
                     },
-                    // decoration: InputDecoration(
-                    //     labelText: '제목', fillColor: Colors.blueAccent),
                   ),
                   TextFormField(
                     controller: _songGYNumberController,
@@ -134,7 +147,9 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
                   PopupMenuButton(
                       onSelected: (SongJanre? result) {
                         songItem = result.toString();
+                        FocusScope.of(context).requestFocus(focusNode); 
                       },
+                      
                       child: Row(
                         children: [
                           Icon(Icons.handyman),
