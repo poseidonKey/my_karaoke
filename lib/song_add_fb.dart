@@ -23,6 +23,7 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
   TextEditingController? _songUtubeAddressController;
   TextEditingController? _songETCController;
   String songItem = "";
+  String _viewPopData="노래 장르 선택(탭 후 Popup 창에서 선택)";
 
   void _submit() async {
     setState(() {
@@ -147,7 +148,28 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
                   PopupMenuButton(
                       onSelected: (SongJanre? result) {
                         songItem = result.toString();
+                        switch (result) {
+                          case SongJanre.BALLAD:
+                            _viewPopData="곡 유형 : 발라드";
+                            break;
+                          case SongJanre.POPSONG:
+                            _viewPopData="곡 유형 : 팝송";
+                            break;
+                          case SongJanre.DANCE:
+                            _viewPopData="곡 유형 : 댄스";
+                            break;
+                          case SongJanre.SONG:
+                            _viewPopData="곡 유형 : 가요";
+                            break;
+                          case SongJanre.ALL:
+                            _viewPopData="곡 유형 구분 없음";
+                            break;
+                          default:
+                        }
                         FocusScope.of(context).requestFocus(focusNode); 
+                        setState(() {
+                          
+                        });
                       },
                       
                       child: Row(
@@ -157,7 +179,7 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
                             width: 20,
                           ),
                           Text(
-                            "노래 장르 선택(탭 후 Popup 창에서 선택)",
+                            "$_viewPopData",
                             style: TextStyle(
                                 color: Colors.blueAccent,
                                 fontWeight: FontWeight.bold),
