@@ -14,13 +14,51 @@ class SongAddFirebase extends StatefulWidget {
 }
 
 class _SongAddFirebaseState extends State<SongAddFirebase> {
+  final _fKey = GlobalKey<FormState>();
+  AutovalidateMode autovalidateMode = AutovalidateMode.disabled;
   TextEditingController? _songNameController;
   TextEditingController? _songGYNumberController;
   TextEditingController? _songTJNumberController;
   TextEditingController? _songJanreController;
   TextEditingController? _songUtubeAddressController;
   TextEditingController? _songETCController;
-  String songItem="";
+  String songItem = "";
+  void _submit() async {
+    setState(() {
+      autovalidateMode = AutovalidateMode.always;
+    });
+
+    if (_fKey.currentState!.validate()) {
+      widget.reference
+          .push()
+          .set(MySongDataFirebase(
+                  widget.songNum.toString(),
+                  _songNameController!.text,
+                  _songGYNumberController!.text,
+                  _songTJNumberController!.text,
+                  songItem,
+                  _songUtubeAddressController!.text,
+                  _songETCController!.text,
+                  DateTime.now().toIso8601String())
+              .toJson())
+          .then((_) {
+        Navigator.of(context).pop();
+      });
+    }
+
+    _fKey.currentState!.save();
+
+    // print('email: $_email, password: $_password');
+
+    // try {
+    //   await context
+    //       .read<AuthProvider>()
+    //       .signIn(email: _email, password: _password);
+    // } catch (e) {
+    //   errorDialog(context, e);
+    // }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -31,7 +69,8 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
     _songUtubeAddressController = TextEditingController();
     _songETCController = TextEditingController();
   }
-@override
+
+  @override
   void dispose() {
     _songNameController!.dispose();
     _songGYNumberController!.dispose();
@@ -41,97 +80,114 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
     _songETCController!.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('곡 추가'),
       ),
-      body: Container(
-        padding: EdgeInsets.all(20),
-        child: Center(
-          child: Column(
-            children: <Widget>[
-              Text("Song No : ${widget.songNum}",style: TextStyle(color: Colors.red),),
-              TextField(
-                controller: _songNameController,
-                decoration: InputDecoration(
-                    labelText: '제목', fillColor: Colors.blueAccent),
-              ),
-              TextField(
-                controller: _songGYNumberController,
-                keyboardType: TextInputType.multiline,
-                maxLines: 1,
-                decoration: InputDecoration(labelText: '금영번호'),
-              ),
-              TextField(
-                controller: _songGYNumberController,
-                keyboardType: TextInputType.multiline,
-                maxLines: 1,
-                decoration: InputDecoration(labelText: '태진번호'),
-              ),
-              PopupMenuButton(onSelected: (SongJanre? result) {
-                    songItem = result.toString();
-                  }, 
-                  icon: Row(
-                    children: [
-                      Icon(Icons.handyman),
-                      Text("노래 장르 선택")
-                    ],
+      body: Form(
+        key: _fKey,
+        autovalidateMode: autovalidateMode,
+        child: SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            height: MediaQuery.of(context).size.height,
+            child: Center(
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    "Song No : ${widget.songNum}",
+                    style: TextStyle(color: Colors.red),
                   ),
-                  itemBuilder: (context) {
-                    return <PopupMenuEntry<SongJanre>>[
-                      const PopupMenuItem(
-                        child: Text("Pop"),
-                        value: SongJanre.POPSONG,
+                  TextFormField(
+                    controller: _songNameController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      labelText: '제목',
+                      prefixIcon: Icon(Icons.email),
+                    ),
+                    // onSaved: (val) => _email = val,
+                    validator: (String? val) {
+                      if (val!.length == 0) {
+                        return '필수 사항 입니다.';
+                      }
+                      return null;
+                    },
+                    // decoration: InputDecoration(
+                    //     labelText: '제목', fillColor: Colors.blueAccent),
+                  ),
+                  TextFormField(
+                    controller: _songGYNumberController,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 1,
+                    decoration: InputDecoration(labelText: '금영노래방 번호'),
+                  ),
+                  TextField(
+                    controller: _songGYNumberController,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 1,
+                    decoration: InputDecoration(labelText: '태진노래방 번호'),
+                  ),
+                  PopupMenuButton(
+                      onSelected: (SongJanre? result) {
+                        songItem = result.toString();
+                      },
+                      child: Row(
+                        children: [
+                          Icon(Icons.handyman),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          Text(
+                            "노래 장르 선택(탭 후 Popup 창에서 선택)",
+                            style: TextStyle(
+                                color: Colors.blueAccent,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
-                      const PopupMenuItem(
-                        child: Text("발라드"),
-                        value: SongJanre.BALLAD,
-                      ),
-                      const PopupMenuItem(
-                        child: Text("트롯"),
-                        value: SongJanre.TROT,
-                      ),
-                      const PopupMenuItem(
-                        child: Text("전곡"),
-                        value: SongJanre.ALL,
-                      ),
-                    ];
-                  }),
-              TextField(
-                controller: _songUtubeAddressController,
-                keyboardType: TextInputType.multiline,
-                maxLines: 3,
-                decoration: InputDecoration(labelText: '유튜브 주소'),
-              ),    
-              TextField(
-                controller: _songETCController,
-                keyboardType: TextInputType.multiline,
-                maxLines: 1,
-                decoration: InputDecoration(labelText: '특기사항'),
+                      itemBuilder: (context) {
+                        return <PopupMenuEntry<SongJanre>>[
+                          const PopupMenuItem(
+                            child: Text("Pop"),
+                            value: SongJanre.POPSONG,
+                          ),
+                          const PopupMenuItem(
+                            child: Text("발라드"),
+                            value: SongJanre.BALLAD,
+                          ),
+                          const PopupMenuItem(
+                            child: Text("트롯"),
+                            value: SongJanre.TROT,
+                          ),
+                          const PopupMenuItem(
+                            child: Text("전곡"),
+                            value: SongJanre.ALL,
+                          ),
+                        ];
+                      }),
+                  TextField(
+                    controller: _songUtubeAddressController,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 3,
+                    decoration: InputDecoration(labelText: '유튜브 주소'),
+                  ),
+                  TextField(
+                    controller: _songETCController,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 1,
+                    decoration: InputDecoration(labelText: '특기사항'),
+                  ),
+                  TextButton(
+                    onPressed: _submit,
+                    child: Text('저장하기'),
+                  )
+                ],
               ),
-              TextButton(
-                onPressed: () {
-                  widget.reference
-                      .push()
-                      .set(MySongDataFirebase(
-                              widget.songNum.toString(),
-                              _songNameController!.text,
-                              _songGYNumberController!.text,
-                              _songTJNumberController!.text,
-                              songItem,
-                              _songUtubeAddressController!.text,
-                              _songETCController!.text,
-                              DateTime.now().toIso8601String())
-                          .toJson())
-                      .then((_) {
-                    Navigator.of(context).pop();
-                  });
-                },
-                child: Text('저장하기'),
-              )
-            ],
+            ),
           ),
         ),
       ),
