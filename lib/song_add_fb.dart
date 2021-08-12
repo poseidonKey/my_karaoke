@@ -14,7 +14,7 @@ class SongAddFirebase extends StatefulWidget {
 
 class _SongAddFirebaseState extends State<SongAddFirebase> {
   final _fKey = GlobalKey<FormState>();
-  FocusNode? focusNode; 
+  FocusNode? focusNode;
   AutovalidateMode autovalidateMode = AutovalidateMode.disabled;
   TextEditingController? _songNameController;
   TextEditingController? _songGYNumberController;
@@ -23,14 +23,14 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
   TextEditingController? _songUtubeAddressController;
   TextEditingController? _songETCController;
   String songItem = "";
-  String _viewPopData="노래 장르 선택(탭 후 Popup 창에서 선택)";
+  String _viewPopData = "노래 장르 선택(탭 후 Popup 창에서 선택)";
 
   void _submit() async {
     setState(() {
       autovalidateMode = AutovalidateMode.always;
     });
 
-    if (_fKey.currentState!.validate())  {
+    if (_fKey.currentState!.validate()) {
       var result = await showDialog<bool?>(
         context: context,
         builder: (BuildContext context) {
@@ -67,16 +67,34 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
           );
         },
       );
-      print("result : $result}");
+      _fKey.currentState!.save();
+      Navigator.of(context).pop();
+      // print("result : $result}");
+    } else {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text("곡 제목은 반드시 입력해야 합니다."),
+            actions: <Widget>[
+              TextButton(
+                child: Text("확인"),
+                onPressed: () {
+                  focusNode!.requestFocus();
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
     }
-    _fKey.currentState!.save();
-    Navigator.of(context).pop();
   }
 
   @override
   void initState() {
     super.initState();
-    focusNode = FocusNode(); 
+    focusNode = FocusNode();
     _songNameController = TextEditingController();
     _songGYNumberController = TextEditingController();
     _songTJNumberController = TextEditingController();
@@ -87,7 +105,7 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
 
   @override
   void dispose() {
-    focusNode!.dispose(); 
+    focusNode!.dispose();
     _songNameController!.dispose();
     _songGYNumberController!.dispose();
     _songTJNumberController!.dispose();
@@ -123,11 +141,13 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
                       border: OutlineInputBorder(),
                       filled: true,
                       labelText: '제목',
-                      prefixIcon: Icon(Icons.email),
+                      prefixIcon: Icon(Icons.title),
                     ),
                     // onSaved: (val) => _email = val,
+                    autofocus: true,
+                    focusNode: focusNode,
                     validator: (String? val) {
-                      if (val!.length == 0) {
+                      if (val!.isEmpty) {
                         return '필수 사항 입니다.';
                       }
                       return null;
@@ -150,28 +170,25 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
                         songItem = result.toString();
                         switch (result) {
                           case SongJanre.BALLAD:
-                            _viewPopData="곡 유형 : 발라드";
+                            _viewPopData = "곡 유형 : 발라드";
                             break;
                           case SongJanre.POPSONG:
-                            _viewPopData="곡 유형 : 팝송";
+                            _viewPopData = "곡 유형 : 팝송";
                             break;
                           case SongJanre.DANCE:
-                            _viewPopData="곡 유형 : 댄스";
+                            _viewPopData = "곡 유형 : 댄스";
                             break;
                           case SongJanre.SONG:
-                            _viewPopData="곡 유형 : 가요";
+                            _viewPopData = "곡 유형 : 가요";
                             break;
-                          case SongJanre.ALL:
-                            _viewPopData="곡 유형 구분 없음";
+                          case SongJanre.TROT:
+                            _viewPopData = "곡 유형 : 트롯트";
                             break;
-                          default:
+                          default:_viewPopData = "곡 유형 구분 없음";
                         }
-                        FocusScope.of(context).requestFocus(focusNode); 
-                        setState(() {
-                          
-                        });
+                        FocusScope.of(context).requestFocus(focusNode);
+                        setState(() {});
                       },
-                      
                       child: Row(
                         children: [
                           Icon(Icons.handyman),
@@ -201,8 +218,12 @@ class _SongAddFirebaseState extends State<SongAddFirebase> {
                             value: SongJanre.TROT,
                           ),
                           const PopupMenuItem(
-                            child: Text("전곡"),
-                            value: SongJanre.ALL,
+                            child: Text("가요"),
+                            value: SongJanre.SONG,
+                          ),
+                          const PopupMenuItem(
+                            child: Text("댄스"),
+                            value: SongJanre.DANCE,
                           ),
                         ];
                       }),
